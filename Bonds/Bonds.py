@@ -4,6 +4,7 @@ class Bonds:
     Purpose: Create a Bonds object and calculate various properties like
     Bond market value
     Yield to maturity
+    Coupon Payments
     
     The inputs required -
     face_val - Face value of the bond
