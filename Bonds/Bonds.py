@@ -5,6 +5,7 @@ class Bonds:
     Bond market value
     Yield to maturity
     Coupon Payments
+    Zero coupon bonds
     
     The inputs required -
     face_val - Face value of the bond
