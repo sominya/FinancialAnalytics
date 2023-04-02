@@ -31,7 +31,6 @@ class Bonds:
                  coupon_rate=0, 
                  coupon_payment_periods=0, 
                  yield_to_maturity=None,
-                 bond_market_value=None,
                  bond_sale_price=None
                  ):
         self.face_val = face_val
@@ -39,11 +38,14 @@ class Bonds:
         self.coupon_rate = coupon_rate
         self.coupon_payment_periods = coupon_payment_periods
         self.yield_to_maturity = yield_to_maturity
-        self.bond_market_value = bond_market_value
         self.bond_sale_price = bond_sale_price
 
         if (bond_sale_price is None) & (yield_to_maturity is None):
             raise ValueError('Either the bond_sale_price or the yield_to_maturity must be set both cant be null')
+        
+        self.set_coupon_payment()
+        self.set_yield_to_maturity()
+        self.set_bond_market_vakue()
         
         
     def annuity_discount_factor(self, discount_rate ,periods):
@@ -94,14 +96,17 @@ class Bonds:
             periods = self.years_to_maturity
             self.yield_to_maturity = pow((face_val/self.bond_sale_price),1/periods)-1
         print('The yield to maturity of this bond is: ', self.yield_to_maturity)
-
+    
+    def get_yield_to_maturity(self):
+        return self.years_to_maturity
+    
     def set_bond_market_vakue(self):
         '''
         If the bond market price is none then calculates and sets the bond market value
         this can be used to calculate whether the bond is worth purchasing
         '''
         discount_rate = self.yield_to_maturity
-        if (self.bond_market_value is None) & (self.coupon_rate > 0) :
+        if (self.coupon_rate > 0) :
             # Discounted face value
             face_value_discounted = self.face_val/pow((1+(discount_rate/self.coupon_payment_periods)), self.years_to_maturity*self.coupon_payment_periods)
 
@@ -114,4 +119,6 @@ class Bonds:
             self.bond_market_value = self.face_val/pow(1+discount_rate,self.years_to_maturity)
         
         print('The current market value of the bond is :', self.bond_market_value)
-            
+    
+    def get_bond_market_value(self):
+        return self.bond_market_value
