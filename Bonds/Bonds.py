@@ -122,3 +122,21 @@ class Bonds:
     
     def get_bond_market_value(self):
         return self.bond_market_value
+
+    def calculate_exposure(self):
+        """
+        Calculates the exposure of a Bond object.
+
+        Arguments:
+        bond -- a Bond object
+
+        Returns:
+        The exposure of the bond
+        """
+        market_value = self.get_bond_market_value()
+        yield_to_maturity = self.get_yield_to_maturity()
+        years_to_maturity = self.years_to_maturity
+
+        exposure = market_value / (1 + yield_to_maturity)**years_to_maturity
+
+        return exposure
