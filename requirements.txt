@@ -1,0 +1,8 @@
+plotly
+ipywidgets
+ipykernel
+matplotlib
+pandas
+numpy
+nbformat
+streamlit
