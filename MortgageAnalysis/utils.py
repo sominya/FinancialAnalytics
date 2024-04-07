@@ -92,13 +92,13 @@ Notes:
     # Calculate monthly interest rate
     monthly_interest_rate = interest_rate / 12 / 100
     stamp_duty = calculate_transfer_duty(house_price)
-    loan_amount = house_price - down_payment + stamp_duty  # USD
+    loan_amount = house_price - down_payment  # USD
     # Calculate total number of payments
     total_payments = loan_term_years * 12
 
     # Calculate monthly payment using the formula for monthly mortgage payment
-    monthly_payment = (loan_amount * monthly_interest_rate) / (1 - (1 + monthly_interest_rate) ** -total_payments)
-
+    # monthly_payment = (loan_amount * monthly_interest_rate) / (1 - (1 + monthly_interest_rate) ** -total_payments)
+    monthly_payment = calculate_monthly_repayment(loan_amount, interest_rate, loan_term_years)
     # Create date range for the mortgage payments
     dates = [start_date + timedelta(days=30 * i) for i in range(total_payments)]
 
@@ -239,6 +239,18 @@ def calculate_cagr(df, down_payment_pct, house_purchase_price):
     annualized_return = cagr * 100
     return (round(new_hp-cgt, 0) , round(annualized_return,4), cgt, total_investment, rental_gains)
 
+
+def calculate_monthly_repayment(loan_amount, annual_interest_rate, loan_term_years):
+    # Calculate monthly interest rate
+    monthly_interest_rate = annual_interest_rate / 12 / 100
+
+    # Calculate number of monthly payments
+    num_monthly_payments = loan_term_years * 12
+
+    # Calculate monthly repayment using the formula
+    monthly_repayment = (loan_amount * monthly_interest_rate) / (1 - (1 + monthly_interest_rate) ** -num_monthly_payments)
+
+    return monthly_repayment
 
 def calculate_cgt(new_hp, old_hp):
     '''
