@@ -38,18 +38,18 @@ start_date = st.sidebar.date_input('Loan Start Date', datetime.now())
 # Generate DataFrame based on input values
 df = generate_df(down_payment, house_price, interest_rate, loan_term_years, weekly_rent, start_date)
 
-(cash_after_tax, annualized_return, total_tax_paid, total_investment) = calculate_cagr(df, down_payment, house_price)
+(cash_after_tax, annualized_return, total_tax_paid, total_investment, rental_gains) = calculate_cagr(df, down_payment, house_price)
 initial_inv = df['InitialInvestments'].max()
 invest_while_rented = total_investment - initial_inv
 # Display DataFrame
 # st.write('Generated DataFrame:')
 # st.write(df.head())
-
+st.metric("Rental Gains over loan period", format_currency(rental_gains))
 monthly_rental = format_currency(df['Payment Amount'].max())
 col1, col2, col3= st.columns(3)
 col1.metric("Monthly Payment", monthly_rental)
 col2.metric("Initial Investments", format_currency(initial_inv))
-col3.metric("Investments While Rented", format_currency(invest_while_rented))
+col3.metric("Rental Losses", format_currency(invest_while_rented))
 col4, col5, col6 = st.columns(3)
 col4.metric("Cash at Sale (After Tax)", format_currency(cash_after_tax))
 col5.metric("Total Investments(Initial+WhileRented)", format_currency(invest_while_rented+initial_inv))
