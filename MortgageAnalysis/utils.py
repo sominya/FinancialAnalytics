@@ -221,16 +221,23 @@ def calculate_cagr(df, down_payment_pct, house_purchase_price):
     income = round(df['Losses'].cumsum().iloc[-1],0)
     tax_on_income = income*.325
     income -= tax_on_income
-    total_losses = abs(df[df['Losses']<=0]['Losses'].cumsum().iloc[-1])
+    try:
+        total_losses = abs(df[df['Losses']<=0]['Losses'].cumsum().iloc[-1])
+    except:
+        total_losses = 0
+    try:
+        rental_gains = abs(df[df['Losses']>=0]['Losses'].cumsum().iloc[-1])
+    except:
+        rental_gains = 0
     total_investment = round(total_losses + down_payment+ stamp_duty,0)
     cgt = calculate_cgt(new_hp, old_hp)
 
-    roi = (((new_hp-total_investment-cgt)+income)/total_investment)-1
+    roi = (((new_hp+rental_gains-total_investment-cgt)+income)/total_investment)-1
     cagr = ((roi / 100) + 1) ** (1/loan_term) - 1
 
     # Convert CAGR to percentage for display
     annualized_return = cagr * 100
-    return (round(new_hp-cgt, 0) , round(annualized_return,4), cgt, total_investment)
+    return (round(new_hp-cgt, 0) , round(annualized_return,4), cgt, total_investment, rental_gains)
 
 
 def calculate_cgt(new_hp, old_hp):
