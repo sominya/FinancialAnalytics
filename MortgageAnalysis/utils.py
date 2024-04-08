@@ -344,3 +344,6 @@ def super_balance(initial_balance, term_years, annual_return_rate, monthly_payme
 
 def calculate_monthly_return_rate(annual_return_rate):
     return (1 + annual_return_rate)**(1/12) - 1
+
+def calculate_daily_return_rate(annual_return_rate):
+    return (1 + annual_return_rate)**(1/365) - 1

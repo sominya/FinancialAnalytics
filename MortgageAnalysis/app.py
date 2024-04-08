@@ -23,7 +23,7 @@ def generate_df(down_payment, house_price, interest_rate, loan_term_years, weekl
 st.set_page_config(layout="wide")
 st.markdown('<h3 style="text-align: center;">Copyright © 2024 Sominya Bajpai . All Rights Reserved.</h3>', unsafe_allow_html=True)
 # Streamlit app
-st.title('Mortgage Payments Calculator')
+st.title('Investment Property Analyzer (New purchase)')
 
 
 # Input widgets
