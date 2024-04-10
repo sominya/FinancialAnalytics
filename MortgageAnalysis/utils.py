@@ -1,5 +1,8 @@
 import pandas as pd
 from datetime import datetime, timedelta
+import requests
+from bs4 import BeautifulSoup
+
 
 def calculate_transfer_duty(purchase_price):
     '''
@@ -53,7 +56,9 @@ def calculate_mortgage_payments(down_payment_pct,
                                 rent_increase_yearly = 5, # Annual rent increase is 5 %
                                 misc_expenses = 100,
                                 management_fee = 8.25, # Agency fee is 8.25 %
-                                body_corporate_fee = 0  # In case of town houses and apartments there is a body corporate fee
+                                body_corporate_fee = 0,  # In case of town houses and apartments there is a body corporate fee
+                                house_price_increase_yearly = 5, # average increase over 30 years,
+                                other_expense_increase = 1 # 1 % increase a year for misc expenses
                                 ):
     '''
 Calculate mortgage payments for a given set of parameters.
@@ -115,6 +120,7 @@ Notes:
     # Initialize loan balance and momthly rent
     loan_balance = loan_amount
     monthly_rent = (weekly_rent*52)/12
+    other_expense_increase = 1+(other_expense_increase/100)
     
     # Calculate payment details for each month
     for payment_num, date in enumerate(dates, start=1):
@@ -130,12 +136,12 @@ Notes:
         # Also increase the house price by 3 %
         if payment_num>1 and payment_num % 12 == 1:
             monthly_rent = monthly_rent*((rent_increase_yearly/100)+1)
-            council_tax = council_tax*1.05
-            body_corporate_fee = body_corporate_fee*1.01
-            insurance = insurance*1.05
-            water = water*1.01
-            misc_expenses = misc_expenses*1.01
-            house_price = round(house_price*1.06,0)
+            council_tax = council_tax*((rent_increase_yearly/100)+1)
+            body_corporate_fee = body_corporate_fee*other_expense_increase
+            insurance = insurance*((rent_increase_yearly/100)+1)
+            water = water*other_expense_increase
+            misc_expenses = misc_expenses*other_expense_increase
+            house_price = round(house_price*(1+(house_price_increase_yearly/100)), 0)
             
         
         # Other Expenses
@@ -347,3 +353,65 @@ def calculate_monthly_return_rate(annual_return_rate):
 
 def calculate_daily_return_rate(annual_return_rate):
     return (1 + annual_return_rate)**(1/365) - 1
+
+
+def get_postcode_data(postcode, base_url='https://sqmresearch.com.au'):
+
+    # Send a GET request to the webpage
+    rent_url = f'{base_url}/weekly-rents.php?postcode={postcode}&t=1'
+    price_url = f'{base_url}/asking-property-prices.php?postcode={postcode}&t=1'
+    
+
+    def _get_data(url, indexes=[-1,-8]):
+        '''
+        -1 refer to the key metrics 10 year% pa change 
+        -8 refer to the $ amount of weekly rent or askign sale price
+        '''
+        response = requests.get(url)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Parse the HTML content using BeautifulSoup
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Find the table containing the rent data
+            table = soup.find('div', class_='changetable')
+            data_text = []
+            if table:
+                # Extract rows from the table
+                rows = table.find_all('tr')
+                
+                # Assume the first row contains headers and skip it
+                for row in rows[1:]:
+                    # Extract columns from each row
+                    columns = row.find_all('td')
+                    for col in columns:
+                        data = col.get_text(strip=True)
+                        data_text.append(data)
+         
+        else:
+            print("Error fetching the data for this postcode.")
+        try:
+            return [data_text[i] for i in indexes]
+        except:
+            return ['0', '0']
+        
+
+    if _get_data(rent_url):
+        (rent_perct_increase, weekly_rent) = _get_data(rent_url)
+        weekly_rent = float(weekly_rent.replace(',',''))
+    else: 
+        rent_perct_increase = '0%'
+        weekly_rent = '0'
+
+    if _get_data(price_url):    
+        (house_price_increase, house_price) = _get_data(price_url)
+        try:
+            house_price = float(house_price.replace(',',''))*1000
+        except:
+            print('Nothing to do')
+    else:
+        house_price_increase = '0%' 
+        house_price = '0'
+
+    return {'rent' : (rent_perct_increase, weekly_rent) , 'price': (house_price_increase, house_price) }

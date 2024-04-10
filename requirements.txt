@@ -6,3 +6,4 @@ pandas
 numpy
 nbformat
 streamlit
+bs4
