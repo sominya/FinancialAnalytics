@@ -7,7 +7,5 @@ numpy
 nbformat
 streamlit
 bs4
-aiohttp
-asyncio
 folium
 streamlit_folium
