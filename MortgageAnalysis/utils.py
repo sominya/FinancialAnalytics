@@ -471,7 +471,7 @@ def get_rental_data():
     '''
     Purpose: Read the rental data file
     '''
-    file_name = 'data/rental_data.csv'
+    file_name = 'MortgageAnalysis/data/rental_data.csv'
     with open(file_name, newline='') as csvfile:
         reader = csv.reader(csvfile)
         rows_list = []
@@ -489,7 +489,7 @@ def get_sale_data():
     '''
     Purpose: Read the sale data file
     '''
-    file_name = 'data/sale_data.csv'
+    file_name = 'MortgageAnalysis/data/sale_data.csv'
     with open(file_name, newline='') as csvfile:
         reader = csv.reader(csvfile)
         rows_list = []
@@ -508,7 +508,7 @@ def get_aus_postcodes():
     '''
     Purpose: Read the australian postcodes
     '''
-    file_name = 'data/au_postcodes.csv'
+    file_name = 'MortgageAnalysis/data/au_postcodes.csv'
     # Read the CSV file into a pandas DataFrame
     aus_postcodes = pd.read_csv(file_name)
     # Display the DataFrame
