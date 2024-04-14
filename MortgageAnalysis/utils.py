@@ -2,6 +2,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
+import streamlit as st
+import csv
 
 
 def calculate_transfer_duty(purchase_price):
@@ -354,7 +356,7 @@ def calculate_monthly_return_rate(annual_return_rate):
 def calculate_daily_return_rate(annual_return_rate):
     return (1 + annual_return_rate)**(1/365) - 1
 
-
+ 
 def get_postcode_data(postcode, base_url='https://sqmresearch.com.au'):
 
     # Send a GET request to the webpage
@@ -415,3 +417,161 @@ def get_postcode_data(postcode, base_url='https://sqmresearch.com.au'):
         house_price = '0'
 
     return {'rent' : (rent_perct_increase, weekly_rent) , 'price': (house_price_increase, house_price) }
+
+
+def get_property_dataframe(all_rental_data):
+    house_types = []
+    postcodes = []
+    asking_price = []
+    prev_week_changes = []
+    rolling_month_changes = []
+    rolling_quarter_changes = []
+    rolling_12m_changes = []
+    rolling_3yr_changes = []
+    rolling_7yr_changes = []
+    rolling_10yr_changes = []
+    val_map = {0: house_types,
+            1: asking_price,
+            2: prev_week_changes,
+            3: rolling_month_changes ,
+            4: rolling_quarter_changes,
+            5: rolling_12m_changes,
+            6: rolling_3yr_changes,
+            7: rolling_7yr_changes,
+            8: rolling_10yr_changes
+            }
+    for data_array in all_rental_data:
+        postcode = data_array[-1]
+        
+        data_array.pop()
+        for idx, val in enumerate(data_array[9:], start=9):
+            for key, value in val_map.items():
+                if idx%9 == key:
+                    value.append(val)
+                if (idx%9 == 0) & (key == 0):
+                    
+                    postcodes.append(postcode)
+
+
+    df = pd.DataFrame({
+            'Postcode': postcodes,
+            'Type': house_types,
+            'Asking Price': asking_price,
+            'Rolling Week Change': prev_week_changes,
+            'Rolling Month Change': rolling_month_changes,
+            'Rolling Quarter Change': rolling_month_changes,
+            'Rolling 12m Change': rolling_12m_changes,
+            'Rolling 03y Change': rolling_3yr_changes,
+            'Rolling 07y Change': rolling_7yr_changes,
+            'Rolling 10y Change': rolling_10yr_changes
+        })
+    return df
+
+def get_rental_data():
+    '''
+    Purpose: Read the rental data file
+    '''
+    file_name = 'data/rental_data.csv'
+    with open(file_name, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        rows_list = []
+        # Iterate over each row in the CSV and append it to the list
+        for row in reader:
+            rows_list.append(row)
+
+    rental_df = get_property_dataframe(rows_list)
+    rental_df['Postcode'] = rental_df['Postcode'].astype('int64')
+    rental_df['Weekly Rent'] = rental_df['Asking Price'].str.replace(',', '').astype('float')
+    rental_df = rental_df.drop(columns=['Asking Price'])
+    return rental_df
+
+def get_sale_data():
+    '''
+    Purpose: Read the sale data file
+    '''
+    file_name = 'data/sale_data.csv'
+    with open(file_name, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        rows_list = []
+        # Iterate over each row in the CSV and append it to the list
+        for row in reader:
+            rows_list.append(row)
+
+    sale_df = get_property_dataframe(rows_list)
+    sale_df['Postcode'] = sale_df['Postcode'].astype('int64')
+    sale_df['Asking Price in $k'] = sale_df['Asking Price'].str.replace(',', '').astype('float')
+    sale_df = sale_df.drop(columns=['Asking Price'])
+    return sale_df
+
+
+def get_aus_postcodes():
+    '''
+    Purpose: Read the australian postcodes
+    '''
+    file_name = 'data/au_postcodes.csv'
+    # Read the CSV file into a pandas DataFrame
+    aus_postcodes = pd.read_csv(file_name)
+    # Display the DataFrame
+    aus_postcodes['Postcode'] = aus_postcodes['postcode']
+    return aus_postcodes.drop(columns=['postcode'])
+
+def get_best_postcodes_rent_yields(house_type, state = 'All Australia', rank = 20, house_price=None):
+
+    sale_df = get_sale_data()[['Postcode' , 'Asking Price in $k', 'Type']]
+    sale_df = sale_df[sale_df['Type'] == house_type].drop(columns=['Type'])
+    rental_df = get_rental_data()[['Postcode' , 'Weekly Rent', 'Type']]
+    rental_df = rental_df[rental_df['Type'] == house_type].drop(columns=['Type'])
+    au_postcodes = get_aus_postcodes().drop(columns=['accuracy'])
+
+    merged = pd.merge(sale_df, rental_df, on='Postcode')
+
+    merged = pd.merge(au_postcodes, merged, on='Postcode')
+
+    merged['Rent To Price Ratio'] = merged['Weekly Rent']/merged['Asking Price in $k']
+
+    if state != 'All Australia':
+        merged = merged[merged['state_code'] == state]
+    
+    if house_price is not None:
+        merged = merged[merged['Asking Price in $k'] >= house_price]
+
+    return merged.sort_values(by='Rent To Price Ratio', ascending=False).head(rank)
+
+
+def get_property_metrics(postcode, type='Combined'):
+    '''
+    Purpose: 
+    '''
+    def _get_filtered_df(df, postcode, type):
+        df = df[(df['Type'] == type) & (df['Postcode'] == postcode)]
+        return df
+
+    sale_df = get_sale_data()[['Postcode' , 'Asking Price in $k', 'Rolling 10y Change', 'Type']]
+    rental_df = get_rental_data()[['Postcode' , 'Weekly Rent', 'Rolling 10y Change', 'Type']]
+
+    sale_df = _get_filtered_df(sale_df, postcode, type)
+    rental_df = _get_filtered_df(rental_df, postcode, type)
+
+    return {'rent' : (rental_df.iloc[0]['Rolling 10y Change'], rental_df.iloc[0]['Weekly Rent']) , 
+           'price': (sale_df.iloc[0]['Rolling 10y Change'], sale_df.iloc[0]['Asking Price in $k']*1000)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
