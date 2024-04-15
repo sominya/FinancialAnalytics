@@ -22,7 +22,10 @@ select_rank = st.sidebar.slider('Select Top N Postcodes', min_value=10, max_valu
 
 df = get_best_postcodes_rent_yields(house_type=selected_house_type, state=selected_state, rank=select_rank, house_price=(minimum_price/1000))
 
-display_df = df.drop(columns=['latitude', 'longitude'])
+display_df = df.drop(columns=['latitude', 'longitude','place_name']).drop_duplicates()
+
+display_df = display_df.sort_values(by='Rent To Price Ratio', ascending=False).head(select_rank)
+
 formatted_df = display_df.style.format({'Asking Price in $k': '{:.2f}', 'Weekly Rent': '{:.0f}', 'Rent To Price Ratio': '{:.2f}'})
 # html = formatted_df.to_html(index=False)
 # st.write(html, unsafe_allow_html=True)
@@ -33,6 +36,7 @@ st.table(formatted_df)
 m = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=5)
 
 # Add markers to the map
+df = df.sort_values(by='Rent To Price Ratio', ascending=False).head(select_rank)
 for index, row in df.iterrows():
     folium.Marker([row['latitude'], row['longitude']], tooltip=[row['place_name'], row['Postcode'], row['Rent To Price Ratio']]).add_to(m)
 
