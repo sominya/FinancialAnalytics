@@ -10,7 +10,7 @@ from streamlit_folium import st_folium
 
 
 st.set_page_config(layout="wide")
-st.markdown('<h3 style="text-align: center;">Copyright © 2024 Sominya Bajpai . All Rights Reserved.</h3>', unsafe_allow_html=True)
+st.write("Copyright © 2024 Sominya Bajpai , Only meant for personal use")
 # Streamlit app
 st.title('Best Postcodes (Gross rental yield)')
 states = list(get_aus_postcodes()['state_code'].unique()) + ['All Australia']

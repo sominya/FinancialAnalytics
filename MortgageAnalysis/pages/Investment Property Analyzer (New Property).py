@@ -51,7 +51,7 @@ def generate_df(down_payment,
     return df
 
 st.set_page_config(layout="wide")
-st.markdown('<h3 style="text-align: center;">Copyright © 2024 Sominya Bajpai . All Rights Reserved.</h3>', unsafe_allow_html=True)
+st.write("Copyright © 2024 Sominya Bajpai , Only meant for personal use")
 # Streamlit app
 st.title('Investment Property Analyzer (New purchase)')
 
