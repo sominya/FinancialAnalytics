@@ -467,11 +467,10 @@ def get_property_dataframe(all_rental_data):
         })
     return df
 
-def get_rental_data():
+def get_rental_data(file_name='MortgageAnalysis/data/rental_data.csv'):
     '''
     Purpose: Read the rental data file
     '''
-    file_name = 'MortgageAnalysis/data/rental_data.csv'
     with open(file_name, newline='') as csvfile:
         reader = csv.reader(csvfile)
         rows_list = []
@@ -485,11 +484,11 @@ def get_rental_data():
     rental_df = rental_df.drop(columns=['Asking Price'])
     return rental_df
 
-def get_sale_data():
+def get_sale_data(file_name = 'MortgageAnalysis/data/sale_data.csv'):
     '''
     Purpose: Read the sale data file
     '''
-    file_name = 'MortgageAnalysis/data/sale_data.csv'
+    
     with open(file_name, newline='') as csvfile:
         reader = csv.reader(csvfile)
         rows_list = []
@@ -504,11 +503,11 @@ def get_sale_data():
     return sale_df
 
 
-def get_aus_postcodes():
+def get_aus_postcodes(file_name = 'MortgageAnalysis/data/au_postcodes.csv'):
     '''
     Purpose: Read the australian postcodes
     '''
-    file_name = 'MortgageAnalysis/data/au_postcodes.csv'
+    
     # Read the CSV file into a pandas DataFrame
     aus_postcodes = pd.read_csv(file_name)
     # Display the DataFrame
@@ -535,7 +534,7 @@ def get_best_postcodes_rent_yields(house_type, state = 'All Australia', rank = 2
     if house_price is not None:
         merged = merged[merged['Asking Price in $k'] >= house_price]
 
-    return merged.sort_values(by='Rent To Price Ratio', ascending=False).head(rank)
+    return merged
 
 
 def get_property_metrics(postcode, type='Combined'):
@@ -556,10 +555,29 @@ def get_property_metrics(postcode, type='Combined'):
            'price': (sale_df.iloc[0]['Rolling 10y Change'], sale_df.iloc[0]['Asking Price in $k']*1000)}
 
 
+def get_postcode_metrics(postcodes, type='Combined'):
+    '''
+    Purpose: Get all the metrics for a list of postcodes
+    '''
+    def _get_filtered_df(df, postcodes, type):
+        df = df[(df['Type'] == type) & (df['Postcode'].isin(postcodes))]
+        return df
 
+    sale_df = get_sale_data()[['Postcode' , 'Asking Price in $k', 'Rolling 10y Change', 'Rolling 12m Change', 'Type']]
+    rental_df = get_rental_data()[['Postcode' , 'Weekly Rent', 'Rolling 10y Change', 'Rolling 12m Change', 'Type']]
+    au_postcodes = get_aus_postcodes().drop(columns=['accuracy'])
+    
+    sale_df = _get_filtered_df(sale_df, postcodes, type)
+    rental_df = _get_filtered_df(rental_df, postcodes, type)
 
+    merged = pd.merge(sale_df, rental_df, on='Postcode')
+    merged['Rent To Price Ratio'] = merged['Weekly Rent']/merged['Asking Price in $k']
 
+    suburbs = pd.merge(au_postcodes, merged, on='Postcode')
 
+    
+
+    return (merged, suburbs)
 
 
 

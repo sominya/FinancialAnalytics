@@ -51,7 +51,7 @@ def generate_df(down_payment,
     return df
 
 st.set_page_config(layout="wide")
-st.markdown('<h3 style="text-align: center;">Copyright © 2024 Sominya Bajpai . All Rights Reserved.</h3>', unsafe_allow_html=True)
+st.write("Copyright © 2024 Sominya Bajpai , Only meant for personal use")
 # Streamlit app
 st.title('Investment Property Analyzer (New purchase)')
 
@@ -82,11 +82,13 @@ rent_inc_percentage = sqmsearch_data['rent'][0]
 asking_weekly_rent = sqmsearch_data['rent'][1]
 house_inc_percentage = sqmsearch_data['price'][0]
 asking_price = sqmsearch_data['price'][1]
+rent_to_price_ratio = asking_weekly_rent/(asking_price/1000)
 # Display DataFrame
 # st.write('Generated DataFrame:')
 # st.write(df.head())
 c1,c2,c3 = st.columns(3)
 c1.metric("Average Increase asking price 10 year (pa) %", house_inc_percentage)
+c2.metric('Weekly Rent to House Price (in $k)', f"{rent_to_price_ratio:.2f}")
 c3.metric("Average Asking Price (SQM Search)", format_currency(asking_price))
 col10, col11, col12 = st.columns(3)
 col10.metric("Rental Gains over loan period", format_currency(rental_gains))
