@@ -8,9 +8,10 @@
 
 git clone https://github.com/sominya/FinancialAnalytics.git
 python3 -m venv myenv
-pip install requirements.py
+source myenv/bin/activate
+pip install -r FinancialAnalytics/requirements.py
 cd FinancialAnalytics
-streamlit run MortgageAnalysis/app.py
+streamlit run MortgageAnalysis/Home.py
 
 App can be directly accessed here
 https://morgagecalculator.azurewebsites.net
