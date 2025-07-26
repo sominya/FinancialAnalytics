@@ -5,6 +5,69 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import csv
 
+import pandas as pd
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+def format_currency(value):
+    return "${:,.0f}".format(value)
+
+def simulate_super_growth(start_date, initial_investment, return_rate, monthly_contribution, months=360):
+    """
+    Simulates superannuation/investment growth over time.
+
+    :param start_date: str - format 'YYYY-MM-DD'
+    :param initial_investment: float - starting balance
+    :param return_rate: float - annual return rate (e.g., 0.09 = 9%)
+    :param monthly_contribution: float - fixed amount added monthly
+    :param months: int - number of months to simulate (default: 30 years = 360 months)
+    :return: pd.DataFrame with columns ['Date', 'Total_Super']
+    """
+    # start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    monthly_rate = return_rate / 12
+    total = initial_investment
+
+    records = []
+
+    for i in range(months):
+        # Apply monthly compounding
+        total *= (1 + monthly_rate)
+        # Add monthly contribution
+        total += monthly_contribution
+        # Store result
+        date = start_date + relativedelta(months=i)
+        records.append({"Date": date, "Total_Super": total})
+
+    return pd.DataFrame(records)
+
+def investment_growth_df(initial_investment,df, annual_rate=0.09):
+    """
+    Given a DataFrame with 'Date' and 'Losses' columns, return investment growth over time.
+
+    :param df: pd.DataFrame with columns ['Date', 'Losses']
+    :param initial_investment: float - initial investment amount
+    :param annual_rate: float - annual rate of return (default 0.09 = 9%)
+    :return: pd.DataFrame with columns ['Date', 'Total']
+    """
+    # Ensure dates are datetime
+    df = df.copy()
+    df['Date'] = pd.to_datetime(df['Date'])
+    new_df = df.sort_values('Date').reset_index(drop=True)
+
+    monthly_rate = annual_rate / 12
+    total = initial_investment
+    results = []
+
+    for _, row in new_df.iterrows():
+        # Apply growth
+        total *= (1 + monthly_rate)
+        # Add this month's contribution (can be negative = withdrawal/loss)
+        total += (-1*row['Losses'])
+        # Store the result
+        results.append({"Date": row['Date'], "Total": total})
+
+    return pd.DataFrame(results)
+
 
 def calculate_transfer_duty(purchase_price):
     '''

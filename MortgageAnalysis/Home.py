@@ -44,3 +44,5 @@ if st.button(":green[Compare Postcodes]"):
     st.switch_page("pages/Compare Postcodes.py")
 if st.button(":green[Investment Property Analyzer (New Property)]"):
     st.switch_page("pages/Investment Property Analyzer (New Property).py")
+if st.button(":green[Super Investments]"):
+    st.switch_page("pages/Super_Investments.py")

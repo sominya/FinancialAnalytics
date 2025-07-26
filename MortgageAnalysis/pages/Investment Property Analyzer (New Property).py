@@ -4,7 +4,7 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 from utils import (calculate_mortgage_payments, 
-calculate_cagr, get_property_metrics, get_rental_data)
+calculate_cagr, get_property_metrics, get_rental_data, investment_growth_df)
 import streamlit as st
 from datetime import datetime
 import locale
@@ -115,6 +115,13 @@ with chart1:
 with chart2:
     st.subheader('Monthly (Cashflow In/Out)')
     st.line_chart(df.set_index('Date')['Losses'])
+
+stock_market_potential = investment_growth_df(initial_inv, df[df["Losses"] < 0][["Date", "Losses"]])
+
+st.subheader('Investment Growth Over Time')
+st.write('This graph shows the growth of your investment over time in S&P500, assuming you had invested the same amount in the stock market instead of the property. Assuming 9% annualized return on the stock market')
+st.metric(label="Total Investment Balance", value= format_currency(stock_market_potential["Total"].max()))
+st.line_chart(stock_market_potential.set_index('Date')['Total'])
 
 st.subheader('Net of [Mortage Payment + Expense] - [Gross Rental Income] = Cashflow In/Out')
 st.subheader('The Calculation makes following assumptions-')
